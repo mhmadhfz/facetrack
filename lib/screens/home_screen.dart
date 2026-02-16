@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'face_scan_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -21,7 +22,12 @@ class HomeScreen extends StatelessWidget {
 
             ElevatedButton(
               onPressed: () {
-                // Face Scan next step
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const FaceScanScreen(),
+                  ),
+                );
               },
               child: const Text("Start Face Attendance"),
             ),
