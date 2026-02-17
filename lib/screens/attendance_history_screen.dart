@@ -1,29 +1,61 @@
 import 'package:flutter/material.dart';
-import '../services/attendance_service.dart';
+import '../services/api_service.dart';
 
-class AttendanceHistoryScreen extends StatelessWidget {
+class AttendanceHistoryScreen extends StatefulWidget {
   const AttendanceHistoryScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    final records = AttendanceService.getRecords();
+  State<AttendanceHistoryScreen> createState() =>
+      _AttendanceHistoryScreenState();
+}
 
+class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
+  List<dynamic> records = [];
+  bool isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    fetchHistory();
+  }
+
+  Future<void> fetchHistory() async {
+    try {
+      final data = await ApiService.getAttendanceHistory();
+
+      setState(() {
+        records = data;
+        isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        isLoading = false;
+      });
+
+      print("Error: $e");
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Attendance History"),
+        title: const Text("Attendance History (Server)"),
         centerTitle: true,
       ),
-      body: records.isEmpty
+      body: isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : records.isEmpty
           ? const Center(
               child: Text(
-                "No attendance records yet.",
+                "No attendance records found.",
                 style: TextStyle(fontSize: 18),
               ),
             )
           : ListView.builder(
               itemCount: records.length,
               itemBuilder: (context, index) {
-                final attendance = records[index];
+                final record = records[index];
 
                 return Card(
                   margin: const EdgeInsets.symmetric(
@@ -36,7 +68,7 @@ class AttendanceHistoryScreen extends StatelessWidget {
                   child: ListTile(
                     leading: const Icon(Icons.check_circle),
                     title: const Text("Attendance Marked"),
-                    subtitle: Text(attendance.time.toString()),
+                    subtitle: Text(record["checked_in_at"]),
                   ),
                 );
               },

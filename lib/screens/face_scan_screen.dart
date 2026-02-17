@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
 import '../services/attendance_service.dart';
 import 'attendance_success_screen.dart';
+import '../services/api_service.dart';
 
 class FaceScanScreen extends StatefulWidget {
   const FaceScanScreen({super.key});
@@ -72,26 +73,37 @@ class _FaceScanScreenState extends State<FaceScanScreen> {
 
       if (!mounted) return;
 
-      setState(() {
-        if (faces.isNotEmpty) {
-          // ✅ Mark attendance
-          AttendanceService.markAttendance();
+      if (faces.isNotEmpty) {
+        setState(() {
+          resultText = "Saving attendance to server...";
+        });
 
-          final now = DateTime.now();
+        // ✅ Send attendance to Laravel API
+        await ApiService.markAttendance();
 
-          // ✅ Navigate to success screen
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => AttendanceSuccessScreen(time: now),
-            ),
-          );
+        // ✅ Mark attendance locally too (optional)
+        AttendanceService.markAttendance();
 
-          resultText = "✅ Attendance Marked!";
-        } else {
+        final now = DateTime.now();
+
+        if (!mounted) return;
+
+        // ✅ Navigate to success screen
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => AttendanceSuccessScreen(time: now),
+          ),
+        );
+
+        setState(() {
+          resultText = "✅ Attendance Saved!";
+        });
+      } else {
+        setState(() {
           resultText = "❌ No Face Found";
-        }
-      });
+        });
+      }
     } catch (e) {
       if (!mounted) return;
 
