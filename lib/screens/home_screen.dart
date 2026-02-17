@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'face_scan_screen.dart';
 import 'attendance_history_screen.dart';
+import '../services/auth_service.dart';
+import 'login_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -45,6 +47,18 @@ class HomeScreen extends StatelessWidget {
                 );
               },
               child: const Text("View Attendance History"),
+            ),
+
+            ElevatedButton(
+              onPressed: () async {
+                await AuthService.logout();
+
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (_) => const LoginScreen()),
+                );
+              },
+              child: const Text("Logout"),
             ),
           ],
         ),

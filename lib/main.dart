@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'screens/login_screen.dart';
+import 'screens/splash_screen.dart';
 
 void main() {
   runApp(const FaceTrackApp());
@@ -13,7 +13,7 @@ class FaceTrackApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: 'FaceTrack',
-      home: const LoginScreen(),
+      home: const SplashScreen(),
     );
   }
 }
