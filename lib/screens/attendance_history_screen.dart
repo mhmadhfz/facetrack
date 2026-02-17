@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import '../services/api_service.dart';
 
 class AttendanceHistoryScreen extends StatefulWidget {
@@ -57,6 +58,10 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
               itemBuilder: (context, index) {
                 final record = records[index];
 
+                final formattedTime = DateFormat(
+                  "dd MMM yyyy, hh:mm a",
+                ).format(DateTime.parse(record["checked_in_at"]));
+
                 return Card(
                   margin: const EdgeInsets.symmetric(
                     horizontal: 16,
@@ -68,7 +73,7 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
                   child: ListTile(
                     leading: const Icon(Icons.check_circle),
                     title: const Text("Attendance Marked"),
-                    subtitle: Text(record["checked_in_at"]),
+                    subtitle: Text(formattedTime),
                   ),
                 );
               },
