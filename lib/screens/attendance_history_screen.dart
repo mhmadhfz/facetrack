@@ -32,7 +32,7 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
         isLoading = false;
       });
 
-      print("Error: $e");
+      debugPrint("Error: $e");
     }
   }
 

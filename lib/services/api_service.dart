@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
 import 'auth_service.dart';
@@ -22,7 +23,7 @@ class ApiService {
     );
 
     if (response.statusCode == 200) {
-      print("✅ Attendance saved successfully (Authenticated)");
+      debugPrint("✅ Attendance saved successfully (Authenticated)");
     } else {
       throw Exception("Failed to mark attendance: ${response.body}");
     }
