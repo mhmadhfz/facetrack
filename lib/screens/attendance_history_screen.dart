@@ -41,7 +41,7 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("Attendance History (Server)"),
+        title: const Text("Attendance History"),
         centerTitle: true,
       ),
       body: isLoading

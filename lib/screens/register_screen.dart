@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../services/auth_service.dart';
-import 'home_screen.dart';
 
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
@@ -15,9 +14,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
   final passwordController = TextEditingController();
 
   String errorText = "";
+  bool isLoading = false;
 
+  // ✅ Handle Register Button
   Future<void> handleRegister() async {
-    debugPrint("REGISTER BUTTON CLICKED ✅");
+    setState(() {
+      isLoading = true;
+      errorText = "";
+    });
 
     final success = await AuthService.register(
       nameController.text.trim(),
@@ -25,10 +29,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
       passwordController.text.trim(),
     );
 
-    debugPrint("REGISTER RESULT: $success");
+    setState(() {
+      isLoading = false;
+    });
 
     if (success) {
-      Navigator.pop(context); // ✅ Go back to LoginScreen
+      Navigator.pop(context);
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -45,39 +51,87 @@ class _RegisterScreenState extends State<RegisterScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Register")),
       body: Padding(
         padding: const EdgeInsets.all(24),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
+            const Text(
+              "Create Account",
+              style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
+            ),
+
+            const SizedBox(height: 30),
+
+            // ✅ Name Input
             TextField(
               controller: nameController,
-              decoration: const InputDecoration(labelText: "Name"),
+              decoration: InputDecoration(
+                labelText: "Full Name",
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
             ),
-            const SizedBox(height: 15),
 
+            const SizedBox(height: 20),
+
+            // ✅ Email Input
             TextField(
               controller: emailController,
-              decoration: const InputDecoration(labelText: "Email"),
+              decoration: InputDecoration(
+                labelText: "Email",
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
             ),
-            const SizedBox(height: 15),
 
+            const SizedBox(height: 20),
+
+            // ✅ Password Input
             TextField(
               controller: passwordController,
               obscureText: true,
-              decoration: const InputDecoration(labelText: "Password"),
+              decoration: InputDecoration(
+                labelText: "Password",
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
             ),
+
             const SizedBox(height: 20),
 
+            // ✅ Error Message
             if (errorText.isNotEmpty)
-              Text(errorText, style: const TextStyle(color: Colors.red)),
+              Text(
+                errorText,
+                style: const TextStyle(color: Colors.red, fontSize: 16),
+              ),
 
             const SizedBox(height: 20),
 
-            ElevatedButton(
-              onPressed: handleRegister, // ✅ Correct
-              child: const Text("Register"),
+            // ✅ Register Button
+            SizedBox(
+              width: double.infinity,
+              height: 50,
+              child: ElevatedButton(
+                onPressed: isLoading ? null : handleRegister,
+                child: isLoading
+                    ? const CircularProgressIndicator(color: Colors.white)
+                    : const Text("Register"),
+              ),
+            ),
+
+            const SizedBox(height: 15),
+
+            // ✅ Back to Login
+            TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+              },
+              child: const Text("Already have an account? Login"),
             ),
           ],
         ),
