@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'face_scan_screen.dart';
+import 'attendance_history_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -30,6 +31,20 @@ class HomeScreen extends StatelessWidget {
                 );
               },
               child: const Text("Start Face Attendance"),
+            ),
+
+            const SizedBox(height: 20),
+
+            ElevatedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const AttendanceHistoryScreen(),
+                  ),
+                );
+              },
+              child: const Text("View Attendance History"),
             ),
           ],
         ),

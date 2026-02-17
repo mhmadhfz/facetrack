@@ -1,6 +1,10 @@
+import 'dart:io';
+
 import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
+import '../services/attendance_service.dart';
+import 'attendance_success_screen.dart';
 
 class FaceScanScreen extends StatefulWidget {
   const FaceScanScreen({super.key});
@@ -11,26 +15,28 @@ class FaceScanScreen extends StatefulWidget {
 
 class _FaceScanScreenState extends State<FaceScanScreen> {
   CameraController? _cameraController;
-  FaceDetector? _faceDetector;
+  late FaceDetector _faceDetector;
 
-  bool _isDetecting = false;
-  String resultText = "Scanning...";
+  String resultText = "Press the button to scan face";
 
   @override
   void initState() {
     super.initState();
-    _initializeCamera();
     _initializeFaceDetector();
+    _initializeCamera();
   }
 
+  // ✅ Initialize Face Detector
   void _initializeFaceDetector() {
     _faceDetector = FaceDetector(
-      options: FaceDetectorOptions(enableContours: true, enableLandmarks: true),
+      options: FaceDetectorOptions(performanceMode: FaceDetectorMode.fast),
     );
   }
 
+  // ✅ Initialize Camera (NO stream)
   Future<void> _initializeCamera() async {
     final cameras = await availableCameras();
+
     final frontCamera = cameras.firstWhere(
       (camera) => camera.lensDirection == CameraLensDirection.front,
     );
@@ -43,47 +49,62 @@ class _FaceScanScreenState extends State<FaceScanScreen> {
 
     await _cameraController!.initialize();
 
-    _cameraController!.startImageStream((image) async {
-      if (_isDetecting) return;
-      _isDetecting = true;
-
-      final inputImage = _convertToInputImage(image);
-
-      final faces = await _faceDetector!.processImage(inputImage);
-
-      if (faces.isNotEmpty) {
-        setState(() {
-          resultText = "✅ Face Detected!";
-        });
-      } else {
-        setState(() {
-          resultText = "❌ No Face Found";
-        });
-      }
-
-      _isDetecting = false;
-    });
-
+    if (!mounted) return;
     setState(() {});
   }
 
-  InputImage _convertToInputImage(CameraImage image) {
-    final bytes = image.planes.first.bytes;
+  // ✅ Capture Photo + Detect Face
+  Future<void> _scanFace() async {
+    if (_cameraController == null) return;
 
-    final metadata = InputImageMetadata(
-      size: Size(image.width.toDouble(), image.height.toDouble()),
-      rotation: InputImageRotation.rotation0deg,
-      format: InputImageFormat.nv21,
-      bytesPerRow: image.planes.first.bytesPerRow,
-    );
+    setState(() {
+      resultText = "Scanning...";
+    });
 
-    return InputImage.fromBytes(bytes: bytes, metadata: metadata);
+    try {
+      // Take picture
+      final XFile file = await _cameraController!.takePicture();
+
+      final inputImage = InputImage.fromFile(File(file.path));
+
+      // Detect faces
+      final faces = await _faceDetector.processImage(inputImage);
+
+      if (!mounted) return;
+
+      setState(() {
+        if (faces.isNotEmpty) {
+          // ✅ Mark attendance
+          AttendanceService.markAttendance();
+
+          final now = DateTime.now();
+
+          // ✅ Navigate to success screen
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => AttendanceSuccessScreen(time: now),
+            ),
+          );
+
+          resultText = "✅ Attendance Marked!";
+        } else {
+          resultText = "❌ No Face Found";
+        }
+      });
+    } catch (e) {
+      if (!mounted) return;
+
+      setState(() {
+        resultText = "⚠️ Error: $e";
+      });
+    }
   }
 
   @override
   void dispose() {
     _cameraController?.dispose();
-    _faceDetector?.close();
+    _faceDetector.close();
     super.dispose();
   }
 
@@ -100,7 +121,7 @@ class _FaceScanScreenState extends State<FaceScanScreen> {
           CameraPreview(_cameraController!),
 
           Positioned(
-            bottom: 50,
+            bottom: 140,
             left: 0,
             right: 0,
             child: Center(
@@ -112,8 +133,21 @@ class _FaceScanScreenState extends State<FaceScanScreen> {
                 ),
                 child: Text(
                   resultText,
-                  style: const TextStyle(color: Colors.white, fontSize: 20),
+                  style: const TextStyle(color: Colors.white, fontSize: 18),
                 ),
+              ),
+            ),
+          ),
+
+          // ✅ Capture Button
+          Positioned(
+            bottom: 50,
+            left: 0,
+            right: 0,
+            child: Center(
+              child: FloatingActionButton(
+                onPressed: _scanFace,
+                child: const Icon(Icons.camera_alt),
               ),
             ),
           ),
