@@ -28,9 +28,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
     debugPrint("REGISTER RESULT: $success");
 
     if (success) {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (_) => const HomeScreen()),
+      Navigator.pop(context); // ✅ Go back to LoginScreen
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("✅ Registration successful! Please login."),
+        ),
       );
     } else {
       setState(() {

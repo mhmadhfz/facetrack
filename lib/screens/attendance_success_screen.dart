@@ -1,3 +1,4 @@
+import 'package:facetrack/screens/home_screen.dart';
 import 'package:flutter/material.dart';
 
 class AttendanceSuccessScreen extends StatelessWidget {
@@ -27,9 +28,13 @@ class AttendanceSuccessScreen extends StatelessWidget {
 
               ElevatedButton(
                 onPressed: () {
-                  Navigator.pop(context);
+                  Navigator.pushAndRemoveUntil(
+                    context,
+                    MaterialPageRoute(builder: (_) => const HomeScreen()),
+                    (route) => false,
+                  );
                 },
-                child: const Text("Back to Scan"),
+                child: const Text("Back to Home"),
               ),
             ],
           ),

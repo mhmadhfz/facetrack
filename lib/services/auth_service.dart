@@ -49,6 +49,7 @@ class AuthService {
   }
 
   // ✅ Register Function
+  // ✅ Register Function (No Auto Login)
   static Future<bool> register(
     String name,
     String email,
@@ -56,40 +57,27 @@ class AuthService {
   ) async {
     final url = Uri.parse("$baseUrl/register");
 
-    debugPrint("🚀 Sending Register Request to: $url");
-
     try {
-      final response = await http
-          .post(
-            url,
-            headers: {"Content-Type": "application/json"},
-            body: jsonEncode({
-              "name": name,
-              "email": email,
-              "password": password,
-            }),
-          )
-          .timeout(const Duration(seconds: 5));
+      final response = await http.post(
+        url,
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json",
+        },
+        body: jsonEncode({"name": name, "email": email, "password": password}),
+      );
 
-      debugPrint("✅ STATUS CODE: ${response.statusCode}");
-      debugPrint("✅ BODY: ${response.body}");
+      debugPrint("REGISTER STATUS: ${response.statusCode}");
+      debugPrint("REGISTER BODY: ${response.body}");
 
       if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-
-        final token = data["token"];
-        final userId = data["user"]["id"];
-
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setString("token", token);
-        await prefs.setInt("user_id", userId);
-
+        // ✅ Registration success ONLY
         return true;
       }
 
       return false;
     } catch (e) {
-      debugPrint("❌ REGISTER ERROR: $e");
+      debugPrint("REGISTER ERROR: $e");
       return false;
     }
   }
