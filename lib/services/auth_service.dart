@@ -12,27 +12,40 @@ class AuthService {
   static Future<bool> login(String email, String password) async {
     final url = Uri.parse("$baseUrl/login");
 
-    final response = await http.post(
-      url,
-      headers: {"Content-Type": "application/json"},
-      body: jsonEncode({"email": email, "password": password}),
-    );
+    try {
+      final response = await http.post(
+        url,
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "application/json",
+        },
+        body: jsonEncode({"email": email, "password": password}),
+      );
 
-    if (response.statusCode == 200) {
-      final data = jsonDecode(response.body);
+      debugPrint("LOGIN STATUS: ${response.statusCode}");
+      debugPrint("LOGIN BODY: ${response.body}");
 
-      final token = data["token"];
-      final userId = data["user"]["id"];
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
 
-      // ✅ Save token locally
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString("token", token);
-      await prefs.setInt("user_id", userId);
+        final token = data["token"];
+        final userId = data["user"]["id"];
 
-      return true;
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString("token", token);
+        await prefs.setInt("user_id", userId);
+
+        return true;
+      } else {
+        // ✅ Clear old token if login fails
+        await logout();
+        return false;
+      }
+    } catch (e) {
+      debugPrint("LOGIN ERROR: $e");
+      await logout();
+      return false;
     }
-
-    return false;
   }
 
   // ✅ Register Function

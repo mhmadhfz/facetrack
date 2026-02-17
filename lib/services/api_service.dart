@@ -1,31 +1,35 @@
+import 'dart:io';
 import 'dart:convert';
-import 'package:flutter/material.dart';
+// import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
 import 'auth_service.dart';
 
 class ApiService {
-  static const String baseUrl = "http://192.168.0.108:8000/api";
+  static const String baseUrl =
+      "http://192.168.0.108/facetrack_backend/public/api";
 
   // ✅ Mark Attendance API (Token Protected)
-  static Future<void> markAttendance() async {
+  static Future<void> markAttendanceWithImage(File imageFile) async {
     final token = await AuthService.getToken();
 
     final url = Uri.parse("$baseUrl/attendance");
 
-    final response = await http.post(
-      url,
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": "Bearer $token",
-      },
-      body: jsonEncode({}),
+    var request = http.MultipartRequest("POST", url);
+
+    request.headers["Authorization"] = "Bearer $token";
+    request.headers["Accept"] = "application/json";
+
+    request.files.add(
+      await http.MultipartFile.fromPath("image", imageFile.path),
     );
 
+    final response = await request.send();
+
     if (response.statusCode == 200) {
-      debugPrint("✅ Attendance saved successfully (Authenticated)");
+      print("✅ Attendance + Image Uploaded Successfully");
     } else {
-      throw Exception("Failed to mark attendance: ${response.body}");
+      throw Exception("Upload failed: ${response.statusCode}");
     }
   }
 
@@ -38,7 +42,7 @@ class ApiService {
 
     final response = await http.get(
       url,
-      headers: {"Authorization": "Bearer $token"},
+      headers: {"Authorization": "Bearer $token", "Accept": "application/json"},
     );
 
     if (response.statusCode == 200) {

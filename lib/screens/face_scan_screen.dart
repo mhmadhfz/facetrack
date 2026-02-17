@@ -79,7 +79,7 @@ class _FaceScanScreenState extends State<FaceScanScreen> {
         });
 
         // ✅ Send attendance to Laravel API
-        await ApiService.markAttendance();
+        await ApiService.markAttendanceWithImage(File(file.path));
 
         // ✅ Mark attendance locally too (optional)
         AttendanceService.markAttendance();
