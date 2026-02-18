@@ -109,8 +109,10 @@ class _FaceScanScreenState extends State<FaceScanScreen>
     } catch (e) {
       if (!mounted) return;
       setState(() {
-        resultText = "Error: $e";
+        resultText = "Face verification failed.\nTry again.";
       });
+
+      debugPrint("❌ FULL ERROR: $e");
     }
   }
 
@@ -177,7 +179,7 @@ class _FaceScanScreenState extends State<FaceScanScreen>
 
           // ✅ Status Text (Below Oval, Above Button)
           Positioned(
-            bottom: 120,
+            bottom: 100,
             left: 0,
             right: 0,
             child: Center(
@@ -195,7 +197,7 @@ class _FaceScanScreenState extends State<FaceScanScreen>
 
           // ✅ Scan Button (Bottom Center)
           Positioned(
-            bottom: 50,
+            bottom: 30,
             left: 0,
             right: 0,
             child: Center(

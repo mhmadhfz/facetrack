@@ -5,7 +5,9 @@ import 'package:image_picker/image_picker.dart';
 import '../services/profile_service.dart';
 
 class AccountScreen extends StatefulWidget {
-  const AccountScreen({super.key});
+  final bool showUploadMessage;
+
+  const AccountScreen({super.key, this.showUploadMessage = false});
 
   @override
   State<AccountScreen> createState() => _AccountScreenState();
@@ -29,6 +31,15 @@ class _AccountScreenState extends State<AccountScreen> {
     super.initState();
     loadProfile();
     loadStats();
+
+    // ✅ Show message if redirected from attendance
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (widget.showUploadMessage) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Please upload profile photo first")),
+        );
+      }
+    });
   }
 
   // ✅ Fetch Profile from Backend

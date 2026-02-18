@@ -2,7 +2,6 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'auth_service.dart';
 import 'dart:io';
-import 'package:image_picker/image_picker.dart';
 
 class ProfileService {
   static const String baseUrl =
@@ -92,5 +91,13 @@ class ProfileService {
     } else {
       throw Exception("Failed to fetch stats: ${response.body}");
     }
+  }
+
+  // ✅ Check if user has uploaded profile photo
+  static Future<bool> hasProfilePhoto() async {
+    final user = await fetchProfile();
+
+    return user["profile_photo"] != null &&
+        user["profile_photo"].toString().isNotEmpty;
   }
 }

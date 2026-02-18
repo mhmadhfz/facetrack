@@ -6,10 +6,16 @@ import '../services/auth_service.dart';
 import 'login_screen.dart';
 import 'terms_screen.dart';
 import 'account_screen.dart';
+import '../services/profile_service.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -130,7 +136,23 @@ class HomeScreen extends StatelessWidget {
                     icon: Icons.camera_alt,
                     title: "Start Face Attendance",
                     subtitle: "Scan your face and mark attendance",
-                    onTap: () {
+                    onTap: () async {
+                      // ✅ Check if user uploaded profile photo
+                      final hasPhoto = await ProfileService.hasProfilePhoto();
+
+                      if (!hasPhoto) {
+                        // Redirect to Account Screen
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) =>
+                                const AccountScreen(showUploadMessage: true),
+                          ),
+                        );
+                        return;
+                      }
+
+                      // ✅ If profile photo exists → Go Scan
                       Navigator.push(
                         context,
                         MaterialPageRoute(
