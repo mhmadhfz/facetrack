@@ -1,6 +1,8 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'auth_service.dart';
+import 'dart:io';
+import 'package:image_picker/image_picker.dart';
 
 class ProfileService {
   static const String baseUrl =
@@ -47,5 +49,33 @@ class ProfileService {
     );
 
     return response.statusCode == 200;
+  }
+
+  static Future<String?> uploadProfilePhoto(File file) async {
+    final token = await AuthService.getToken();
+
+    final request = http.MultipartRequest(
+      "POST",
+      Uri.parse("$baseUrl/profile/photo"),
+    );
+
+    request.headers["Authorization"] = "Bearer $token";
+    request.headers["Accept"] = "application/json";
+
+    request.files.add(await http.MultipartFile.fromPath("photo", file.path));
+
+    final response = await request.send();
+
+    final respStr = await response.stream.bytesToString();
+
+    print("UPLOAD STATUS: ${response.statusCode}");
+    print("UPLOAD BODY: $respStr");
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(respStr);
+      return data["photo_url"];
+    }
+
+    return null;
   }
 }

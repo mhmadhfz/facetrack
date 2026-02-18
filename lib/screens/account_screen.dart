@@ -1,4 +1,7 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 import '../services/profile_service.dart';
 
 class AccountScreen extends StatefulWidget {
@@ -13,6 +16,7 @@ class _AccountScreenState extends State<AccountScreen> {
   final emailController = TextEditingController();
   final passwordController = TextEditingController();
   final confirmPasswordController = TextEditingController();
+  String? profilePhotoUrl;
 
   String email = "";
   bool loading = true;
@@ -32,6 +36,11 @@ class _AccountScreenState extends State<AccountScreen> {
       setState(() {
         nameController.text = user["name"];
         emailController.text = user["email"];
+
+        profilePhotoUrl = user["profile_photo"] != null
+            ? "http://192.168.0.108/facetrack_backend/public/storage/${user["profile_photo"]}"
+            : null;
+
         loading = false;
       });
     } catch (e) {
@@ -80,10 +89,40 @@ class _AccountScreenState extends State<AccountScreen> {
         child: Column(
           children: [
             // ✅ Profile Photo Circle
-            CircleAvatar(
-              radius: 50,
-              backgroundColor: Colors.blue.withValues(alpha: 0.2),
-              child: const Icon(Icons.person, size: 60, color: Colors.blue),
+            GestureDetector(
+              onTap: () async {
+                final picker = ImagePicker();
+                final picked = await picker.pickImage(
+                  source: ImageSource.gallery,
+                );
+
+                if (picked == null) return;
+
+                final file = File(picked.path);
+
+                final url = await ProfileService.uploadProfilePhoto(file);
+
+                if (url != null) {
+                  setState(() {
+                    profilePhotoUrl = url;
+                    message = "Photo updated!";
+                  });
+                } else {
+                  setState(() {
+                    message = "Upload failed.";
+                  });
+                }
+              },
+              child: CircleAvatar(
+                radius: 55,
+                backgroundColor: Colors.blue.withValues(alpha: 0.2),
+                backgroundImage: profilePhotoUrl != null
+                    ? NetworkImage(profilePhotoUrl!)
+                    : null,
+                child: profilePhotoUrl == null
+                    ? const Icon(Icons.camera_alt, size: 40, color: Colors.blue)
+                    : null,
+              ),
             ),
 
             const SizedBox(height: 20),
@@ -148,7 +187,7 @@ class _AccountScreenState extends State<AccountScreen> {
               Text(
                 message,
                 style: TextStyle(
-                  color: message.contains("✅") ? Colors.green : Colors.red,
+                  color: message.contains("✅") ? Colors.green : Colors.black,
                   fontSize: 16,
                 ),
               ),
