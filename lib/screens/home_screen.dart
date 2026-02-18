@@ -5,6 +5,7 @@ import 'attendance_history_screen.dart';
 import '../services/auth_service.dart';
 import 'login_screen.dart';
 import 'terms_screen.dart';
+import 'account_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -26,6 +27,13 @@ class HomeScreen extends StatelessWidget {
             offset: const Offset(0, 50),
 
             onSelected: (value) async {
+              if (value == "account") {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const AccountScreen()),
+                );
+              }
+
               if (value == "terms") {
                 Navigator.push(
                   context,
@@ -44,6 +52,16 @@ class HomeScreen extends StatelessWidget {
             },
 
             itemBuilder: (context) => [
+              const PopupMenuItem(
+                value: "account",
+                child: Row(
+                  children: [
+                    Icon(Icons.person, size: 20),
+                    SizedBox(width: 10),
+                    Text("My Account"),
+                  ],
+                ),
+              ),
               const PopupMenuItem(
                 value: "terms",
                 child: Row(
