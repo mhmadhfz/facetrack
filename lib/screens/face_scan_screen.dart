@@ -103,13 +103,13 @@ class _FaceScanScreenState extends State<FaceScanScreen>
         );
       } else {
         setState(() {
-          resultText = "❌ No face detected. Try again.";
+          resultText = "No face detected. Try again.";
         });
       }
     } catch (e) {
       if (!mounted) return;
       setState(() {
-        resultText = "⚠️ Error: $e";
+        resultText = "Error: $e";
       });
     }
   }

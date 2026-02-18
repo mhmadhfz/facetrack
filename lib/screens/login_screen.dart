@@ -41,7 +41,7 @@ class _LoginScreenState extends State<LoginScreen> {
       );
     } else {
       setState(() {
-        errorText = "❌ Invalid email or password";
+        errorText = "Invalid email or password";
       });
     }
   }
@@ -55,7 +55,7 @@ class _LoginScreenState extends State<LoginScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const Text(
-              "FaceTrack Login",
+              "Login",
               style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold),
             ),
 

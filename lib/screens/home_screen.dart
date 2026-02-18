@@ -12,7 +12,7 @@ class HomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text("FaceTrack Dashboard"),
+        title: const Text("Dashboard"),
         centerTitle: true,
         elevation: 0,
       ),
