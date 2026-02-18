@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import 'face_scan_screen.dart';
 import 'attendance_history_screen.dart';
 import '../services/auth_service.dart';
@@ -13,53 +14,160 @@ class HomeScreen extends StatelessWidget {
       appBar: AppBar(
         title: const Text("FaceTrack Dashboard"),
         centerTitle: true,
+        elevation: 0,
       ),
-      body: Center(
+      body: Padding(
+        padding: const EdgeInsets.all(24),
         child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.face, size: 80),
-            const SizedBox(height: 20),
-            const Text("Welcome to FaceTrack!", style: TextStyle(fontSize: 22)),
-            const SizedBox(height: 30),
-
-            ElevatedButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const FaceScanScreen(),
-                  ),
-                );
-              },
-              child: const Text("Start Face Attendance"),
-            ),
-
             const SizedBox(height: 20),
 
-            ElevatedButton(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => const AttendanceHistoryScreen(),
+            // ✅ Top Welcome Card
+            Card(
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(20),
+              ),
+              elevation: 4,
+              child: Padding(
+                padding: const EdgeInsets.all(24),
+                child: Row(
+                  children: const [
+                    Icon(Icons.face_retouching_natural, size: 60),
+                    SizedBox(width: 20),
+                    Expanded(
+                      child: Text(
+                        "Welcome to FaceTrack 👋\nYour smart attendance system.",
+                        style: TextStyle(
+                          fontSize: 18,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 40),
+
+            // ✅ Dashboard Buttons
+            Expanded(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  DashboardButton(
+                    icon: Icons.camera_alt,
+                    title: "Start Face Attendance",
+                    subtitle: "Scan your face and mark attendance",
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const FaceScanScreen(),
+                        ),
+                      );
+                    },
                   ),
-                );
-              },
-              child: const Text("View Attendance History"),
-            ),
 
-            ElevatedButton(
-              onPressed: () async {
-                await AuthService.logout();
+                  const SizedBox(height: 20),
 
-                Navigator.pushReplacement(
-                  context,
-                  MaterialPageRoute(builder: (_) => const LoginScreen()),
-                );
-              },
-              child: const Text("Logout"),
+                  DashboardButton(
+                    icon: Icons.history,
+                    title: "Attendance History",
+                    subtitle: "View your previous check-ins",
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => const AttendanceHistoryScreen(),
+                        ),
+                      );
+                    },
+                  ),
+
+                  const SizedBox(height: 40),
+
+                  // ✅ Logout Button (Separated)
+                  SizedBox(
+                    width: double.infinity,
+                    height: 50,
+                    child: OutlinedButton.icon(
+                      icon: const Icon(Icons.logout),
+                      label: const Text("Logout"),
+                      onPressed: () async {
+                        await AuthService.logout();
+
+                        Navigator.pushReplacement(
+                          context,
+                          MaterialPageRoute(
+                            builder: (_) => const LoginScreen(),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ],
+              ),
             ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+//
+// ✅ Custom Dashboard Button Widget
+//
+class DashboardButton extends StatelessWidget {
+  final IconData icon;
+  final String title;
+  final String subtitle;
+  final VoidCallback onTap;
+
+  const DashboardButton({
+    super.key,
+    required this.icon,
+    required this.title,
+    required this.subtitle,
+    required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: double.infinity,
+      height: 85,
+      child: ElevatedButton(
+        style: ElevatedButton.styleFrom(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(18),
+          ),
+          padding: const EdgeInsets.symmetric(horizontal: 20),
+        ),
+        onPressed: onTap,
+        child: Row(
+          children: [
+            Icon(icon, size: 32),
+            const SizedBox(width: 18),
+            Expanded(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(subtitle, style: const TextStyle(fontSize: 14)),
+                ],
+              ),
+            ),
+            const Icon(Icons.arrow_forward_ios, size: 18),
           ],
         ),
       ),
