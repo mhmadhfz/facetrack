@@ -105,6 +105,69 @@ class _AccountScreenState extends State<AccountScreen> {
     }
   }
 
+  Future<void> pickAndUploadPhoto() async {
+    final picker = ImagePicker();
+
+    // ✅ Show options dialog
+    final source = await showDialog<ImageSource>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Upload Profile Photo"),
+        content: const Text("Choose a method:"),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(15)),
+        actions: [
+          TextButton.icon(
+            icon: const Icon(Icons.photo_library),
+            label: const Text("Gallery"),
+            onPressed: () {
+              Navigator.pop(context, ImageSource.gallery);
+            },
+          ),
+          TextButton.icon(
+            icon: const Icon(Icons.camera_alt),
+            label: const Text("Camera"),
+            onPressed: () {
+              Navigator.pop(context, ImageSource.camera);
+            },
+          ),
+          TextButton(
+            child: const Text("Cancel"),
+            onPressed: () {
+              Navigator.pop(context, null);
+            },
+          ),
+        ],
+      ),
+    );
+
+    if (source == null) return;
+
+    // ✅ Pick image
+    final picked = await picker.pickImage(source: source);
+
+    if (picked == null) return;
+
+    final file = File(picked.path);
+
+    setState(() {
+      message = "Uploading photo...";
+    });
+
+    // ✅ Upload to backend
+    final url = await ProfileService.uploadProfilePhoto(file);
+
+    if (url != null) {
+      setState(() {
+        profilePhotoUrl = url;
+        message = "Photo updated successfully!";
+      });
+    } else {
+      setState(() {
+        message = "Upload failed. Try again.";
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     if (loading) {
@@ -119,29 +182,7 @@ class _AccountScreenState extends State<AccountScreen> {
           children: [
             // ✅ Profile Photo Circle
             GestureDetector(
-              onTap: () async {
-                final picker = ImagePicker();
-                final picked = await picker.pickImage(
-                  source: ImageSource.gallery,
-                );
-
-                if (picked == null) return;
-
-                final file = File(picked.path);
-
-                final url = await ProfileService.uploadProfilePhoto(file);
-
-                if (url != null) {
-                  setState(() {
-                    profilePhotoUrl = url;
-                    message = "Photo updated!";
-                  });
-                } else {
-                  setState(() {
-                    message = "Upload failed.";
-                  });
-                }
-              },
+              onTap: pickAndUploadPhoto,
               child: CircleAvatar(
                 radius: 55,
                 backgroundColor: Colors.blue.withValues(alpha: 0.2),
