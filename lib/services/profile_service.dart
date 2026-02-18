@@ -78,4 +78,19 @@ class ProfileService {
 
     return null;
   }
+
+  static Future<Map<String, dynamic>> fetchStats() async {
+    final token = await AuthService.getToken();
+
+    final response = await http.get(
+      Uri.parse("$baseUrl/profile/stats"),
+      headers: {"Authorization": "Bearer $token", "Accept": "application/json"},
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception("Failed to fetch stats: ${response.body}");
+    }
+  }
 }

@@ -17,6 +17,8 @@ class _AccountScreenState extends State<AccountScreen> {
   final passwordController = TextEditingController();
   final confirmPasswordController = TextEditingController();
   String? profilePhotoUrl;
+  int attendanceCount = 0;
+  String lastCheckIn = "No record yet";
 
   String email = "";
   bool loading = true;
@@ -26,6 +28,7 @@ class _AccountScreenState extends State<AccountScreen> {
   void initState() {
     super.initState();
     loadProfile();
+    loadStats();
   }
 
   // ✅ Fetch Profile from Backend
@@ -76,6 +79,21 @@ class _AccountScreenState extends State<AccountScreen> {
     }
   }
 
+  Future<void> loadStats() async {
+    try {
+      final stats = await ProfileService.fetchStats();
+
+      setState(() {
+        attendanceCount = stats["attendance_count"];
+        lastCheckIn = stats["last_check_in"] ?? "No record yet";
+      });
+    } catch (e) {
+      setState(() {
+        lastCheckIn = "Unable to load stats";
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     if (loading) {
@@ -84,7 +102,7 @@ class _AccountScreenState extends State<AccountScreen> {
 
     return Scaffold(
       appBar: AppBar(title: const Text("My Account"), centerTitle: true),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
         child: Column(
           children: [
@@ -202,6 +220,80 @@ class _AccountScreenState extends State<AccountScreen> {
                 onPressed: saveProfile,
                 child: const Text("Save Changes"),
               ),
+            ),
+
+            const SizedBox(height: 25),
+
+            // ✅ Attendance Stats Cards (Same Size)
+            Row(
+              children: [
+                Expanded(
+                  child: SizedBox(
+                    height: 150, // ✅ Force same height
+                    child: Card(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(15),
+                      ),
+                      elevation: 3,
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(Icons.check_circle, size: 30),
+                            const SizedBox(height: 8),
+                            Text(
+                              "$attendanceCount",
+                              style: const TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            const Text("Attendances"),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+
+                const SizedBox(width: 15),
+
+                Expanded(
+                  child: SizedBox(
+                    height: 150, // ✅ Same height
+                    child: Card(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(15),
+                      ),
+                      elevation: 3,
+                      child: Padding(
+                        padding: const EdgeInsets.all(16),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(Icons.access_time, size: 30),
+                            const SizedBox(height: 8),
+                            Text(
+                              lastCheckIn == "No record yet"
+                                  ? "-"
+                                  : lastCheckIn.substring(0, 16),
+                              textAlign: TextAlign.center,
+                              style: const TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            const Text("Last Check-in"),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
           ],
         ),
