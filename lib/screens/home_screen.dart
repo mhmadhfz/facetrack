@@ -4,6 +4,7 @@ import 'face_scan_screen.dart';
 import 'attendance_history_screen.dart';
 import '../services/auth_service.dart';
 import 'login_screen.dart';
+import 'terms_screen.dart';
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -15,7 +16,59 @@ class HomeScreen extends StatelessWidget {
         title: const Text("Dashboard"),
         centerTitle: true,
         elevation: 0,
+
+        // ✅ Burger Menu Dropdown
+        actions: [
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.menu),
+
+            // ✅ Dropdown appears directly below burger button
+            offset: const Offset(0, 50),
+
+            onSelected: (value) async {
+              if (value == "terms") {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const TermsScreen()),
+                );
+              }
+
+              if (value == "logout") {
+                await AuthService.logout();
+
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (_) => const LoginScreen()),
+                );
+              }
+            },
+
+            itemBuilder: (context) => [
+              const PopupMenuItem(
+                value: "terms",
+                child: Row(
+                  children: [
+                    Icon(Icons.description, size: 20),
+                    SizedBox(width: 10),
+                    Text("Terms & Conditions"),
+                  ],
+                ),
+              ),
+              const PopupMenuItem(
+                value: "logout",
+                child: Row(
+                  children: [
+                    Icon(Icons.logout, size: 20),
+                    SizedBox(width: 10),
+                    Text("Logout"),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ],
       ),
+
       body: Padding(
         padding: const EdgeInsets.all(24),
         child: Column(
@@ -86,26 +139,6 @@ class HomeScreen extends StatelessWidget {
                   ),
 
                   const SizedBox(height: 40),
-
-                  // ✅ Logout Button (Separated)
-                  SizedBox(
-                    width: double.infinity,
-                    height: 50,
-                    child: OutlinedButton.icon(
-                      icon: const Icon(Icons.logout),
-                      label: const Text("Logout"),
-                      onPressed: () async {
-                        await AuthService.logout();
-
-                        Navigator.pushReplacement(
-                          context,
-                          MaterialPageRoute(
-                            builder: (_) => const LoginScreen(),
-                          ),
-                        );
-                      },
-                    ),
-                  ),
                 ],
               ),
             ),
