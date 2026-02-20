@@ -4,8 +4,13 @@ import 'package:intl/intl.dart';
 
 class AttendanceSuccessScreen extends StatelessWidget {
   final DateTime time;
+  final String type;
 
-  const AttendanceSuccessScreen({super.key, required this.time});
+  const AttendanceSuccessScreen({
+    super.key,
+    required this.time,
+    required this.type,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -36,6 +41,14 @@ class AttendanceSuccessScreen extends StatelessWidget {
                 "Time: $formattedTime",
                 style: const TextStyle(fontSize: 18),
                 textAlign: TextAlign.center,
+              ),
+
+              Text(
+                type == "check_in" ? "Check-In" : "Check-Out",
+                style: const TextStyle(
+                  fontSize: 26,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
 
               const SizedBox(height: 30),

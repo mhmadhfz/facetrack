@@ -4,7 +4,6 @@ import 'package:camera/camera.dart';
 import 'package:flutter/material.dart';
 import 'package:google_mlkit_face_detection/google_mlkit_face_detection.dart';
 
-import '../services/attendance_service.dart';
 import '../services/api_service.dart';
 import 'attendance_success_screen.dart';
 
@@ -19,16 +18,20 @@ class _FaceScanScreenState extends State<FaceScanScreen>
     with SingleTickerProviderStateMixin {
   CameraController? _cameraController;
   late FaceDetector _faceDetector;
+
   late AnimationController _animationController;
   late Animation<double> _scanAnimation;
 
   String resultText = "Align your face inside the frame";
+  bool isProcessing = false; // ✅ Prevent double scan
 
   @override
   void initState() {
     super.initState();
     _initializeFaceDetector();
     _initializeCamera();
+
+    // ✅ Scan Line Animation
     _animationController = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 2),
@@ -66,50 +69,62 @@ class _FaceScanScreenState extends State<FaceScanScreen>
     setState(() {});
   }
 
-  // ✅ Capture Photo + Detect Face
+  // ✅ Capture Photo + Detect Face + Upload Attendance
   Future<void> _scanFace() async {
     if (_cameraController == null) return;
+    if (isProcessing) return;
 
     setState(() {
+      isProcessing = true;
       resultText = "Scanning face...";
     });
 
     try {
+      // ✅ Take picture
       final XFile file = await _cameraController!.takePicture();
       final inputImage = InputImage.fromFile(File(file.path));
 
+      // ✅ Detect face
       final faces = await _faceDetector.processImage(inputImage);
 
       if (!mounted) return;
 
-      if (faces.isNotEmpty) {
+      if (faces.isEmpty) {
         setState(() {
-          resultText = "Saving attendance...";
+          resultText = "❌ No face detected. Try again.";
+          isProcessing = false;
         });
-
-        // ✅ Upload to Laravel
-        await ApiService.markAttendanceWithImage(File(file.path));
-
-        // Optional local save
-        AttendanceService.markAttendance();
-
-        final now = DateTime.now();
-
-        if (!mounted) return;
-
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (_) => AttendanceSuccessScreen(time: now)),
-        );
-      } else {
-        setState(() {
-          resultText = "No face detected. Try again.";
-        });
+        return;
       }
+
+      setState(() {
+        resultText = "Saving attendance...";
+      });
+
+      // ✅ Upload Attendance (Laravel returns check_in/check_out)
+      final data = await ApiService.markAttendanceWithImage(File(file.path));
+      final type = data["type"];
+
+      final now = DateTime.now();
+
+      if (!mounted) return;
+
+      // ✅ Stop animation before leaving screen
+      _animationController.stop();
+
+      // ✅ Navigate to success screen
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(
+          builder: (_) => AttendanceSuccessScreen(time: now, type: type),
+        ),
+      );
     } catch (e) {
       if (!mounted) return;
+
       setState(() {
-        resultText = "Face verification failed.\nTry again.";
+        resultText = "❌ Verification failed.\nTry again.";
+        isProcessing = false;
       });
 
       debugPrint("❌ FULL ERROR: $e");
@@ -134,10 +149,10 @@ class _FaceScanScreenState extends State<FaceScanScreen>
       appBar: AppBar(title: const Text("Face Attendance"), centerTitle: true),
       body: Stack(
         children: [
-          // ✅ Camera Preview Full Screen
+          // ✅ Camera Preview
           CameraPreview(_cameraController!),
 
-          // ✅ Dark Overlay + Face Guide Frame
+          // ✅ Dark Overlay + Oval Guide
           Positioned.fill(child: CustomPaint(painter: FaceGuidePainter())),
 
           // ✅ Animated Scan Line
@@ -170,16 +185,16 @@ class _FaceScanScreenState extends State<FaceScanScreen>
                 ),
                 SizedBox(height: 6),
                 Text(
-                  "Tap the button to mark attendance",
+                  "Tap SNAP to check-in / check-out",
                   style: TextStyle(color: Colors.white70),
                 ),
               ],
             ),
           ),
 
-          // ✅ Status Text (Below Oval, Above Button)
+          // ✅ Status Text
           Positioned(
-            bottom: 100,
+            bottom: 110,
             left: 0,
             right: 0,
             child: Center(
@@ -188,33 +203,25 @@ class _FaceScanScreenState extends State<FaceScanScreen>
                 textAlign: TextAlign.center,
                 style: const TextStyle(
                   color: Colors.white,
-                  fontSize: 15, // ✅ Smaller size
+                  fontSize: 15,
                   fontWeight: FontWeight.w500,
                 ),
               ),
             ),
           ),
 
-          // ✅ Scan Button (Bottom Center)
+          // ✅ SNAP Button
           Positioned(
             bottom: 30,
             left: 0,
             right: 0,
             child: Center(
-              child: SizedBox(
-                width: 90,
-                height: 60,
-                child: FloatingActionButton(
-                  onPressed: _scanFace,
-                  child: const Text(
-                    "SNAP",
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      letterSpacing: 1,
-                    ),
-                  ),
-                ),
+              child: FloatingActionButton.extended(
+                onPressed: isProcessing ? null : _scanFace,
+                label: isProcessing
+                    ? const Text("WAIT...")
+                    : const Text("SNAP"),
+                icon: const Icon(Icons.camera_alt),
               ),
             ),
           ),
@@ -230,11 +237,9 @@ class _FaceScanScreenState extends State<FaceScanScreen>
 class FaceGuidePainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
-    // Full screen overlay path
     final fullPath = Path()
       ..addRect(Rect.fromLTWH(0, 0, size.width, size.height));
 
-    // Oval hole path
     final ovalRect = Rect.fromCenter(
       center: Offset(size.width / 2, size.height / 2),
       width: size.width * 0.65,
@@ -243,21 +248,18 @@ class FaceGuidePainter extends CustomPainter {
 
     final ovalPath = Path()..addOval(ovalRect);
 
-    // ✅ Combine paths: full screen - oval hole
     final overlayPath = Path.combine(
       PathOperation.difference,
       fullPath,
       ovalPath,
     );
 
-    // Draw dark overlay with hole cut out
     final overlayPaint = Paint()
       ..color = Colors.black.withValues(alpha: 0.55)
       ..style = PaintingStyle.fill;
 
     canvas.drawPath(overlayPath, overlayPaint);
 
-    // White border around oval
     final borderPaint = Paint()
       ..color = Colors.white
       ..style = PaintingStyle.stroke
@@ -270,6 +272,9 @@ class FaceGuidePainter extends CustomPainter {
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
 }
 
+//
+// ✅ Scan Line Painter
+//
 class ScanLinePainter extends CustomPainter {
   final double position;
 
@@ -277,21 +282,18 @@ class ScanLinePainter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    // Oval frame area
     final ovalRect = Rect.fromCenter(
       center: Offset(size.width / 2, size.height / 2),
       width: size.width * 0.65,
       height: size.height * 0.45,
     );
 
-    // Scan line Y position inside oval
     final y = ovalRect.center.dy + (ovalRect.height / 2) * position;
 
     final linePaint = Paint()
       ..color = Colors.lightBlueAccent.withValues(alpha: 0.8)
       ..strokeWidth = 3;
 
-    // Draw scan line only inside oval bounds
     canvas.drawLine(
       Offset(ovalRect.left + 20, y),
       Offset(ovalRect.right - 20, y),

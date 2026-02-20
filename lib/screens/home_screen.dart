@@ -7,6 +7,7 @@ import 'login_screen.dart';
 import 'terms_screen.dart';
 import 'account_screen.dart';
 import '../services/profile_service.dart';
+import '../services/api_service.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -16,6 +17,40 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
+  String buttonText = "Loading...";
+  bool isButtonEnabled = false;
+
+  @override
+  void initState() {
+    super.initState();
+    loadAttendanceStatus();
+  }
+
+  // ✅ Load Today Attendance Status
+  Future<void> loadAttendanceStatus() async {
+    try {
+      final status = await ApiService.getTodayAttendanceStatus();
+
+      setState(() {
+        if (status == "not_checked_in") {
+          buttonText = "Check In";
+          isButtonEnabled = true;
+        } else if (status == "checked_in") {
+          buttonText = "Check Out";
+          isButtonEnabled = true;
+        } else {
+          buttonText = "Attendance Completed";
+          isButtonEnabled = false;
+        }
+      });
+    } catch (e) {
+      setState(() {
+        buttonText = "Error Loading Status";
+        isButtonEnabled = false;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -29,7 +64,7 @@ class _HomeScreenState extends State<HomeScreen> {
           PopupMenuButton<String>(
             icon: const Icon(Icons.menu),
 
-            // ✅ Dropdown appears directly below burger button
+            // ✅ Dropdown below burger button
             offset: const Offset(0, 50),
 
             onSelected: (value) async {
@@ -99,7 +134,7 @@ class _HomeScreenState extends State<HomeScreen> {
           children: [
             const SizedBox(height: 20),
 
-            // ✅ Top Welcome Card
+            // ✅ Welcome Card
             Card(
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(20),
@@ -132,16 +167,17 @@ class _HomeScreenState extends State<HomeScreen> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
+                  // ✅ Dynamic Check In / Out Button
                   DashboardButton(
                     icon: Icons.camera_alt,
-                    title: "Start Face Attendance",
-                    subtitle: "Scan your face and mark attendance",
+                    title: buttonText,
+                    subtitle: "Scan your face to mark attendance",
+                    enabled: isButtonEnabled,
                     onTap: () async {
-                      // ✅ Check if user uploaded profile photo
+                      // ✅ Check profile photo first
                       final hasPhoto = await ProfileService.hasProfilePhoto();
 
                       if (!hasPhoto) {
-                        // Redirect to Account Screen
                         Navigator.push(
                           context,
                           MaterialPageRoute(
@@ -152,22 +188,27 @@ class _HomeScreenState extends State<HomeScreen> {
                         return;
                       }
 
-                      // ✅ If profile photo exists → Go Scan
+                      // ✅ Go Scan
                       Navigator.push(
                         context,
                         MaterialPageRoute(
                           builder: (_) => const FaceScanScreen(),
                         ),
-                      );
+                      ).then((_) {
+                        // ✅ Refresh status after scan
+                        loadAttendanceStatus();
+                      });
                     },
                   ),
 
                   const SizedBox(height: 20),
 
+                  // ✅ Attendance History Button
                   DashboardButton(
                     icon: Icons.history,
                     title: "Attendance History",
                     subtitle: "View your previous check-ins",
+                    enabled: true,
                     onTap: () {
                       Navigator.push(
                         context,
@@ -190,13 +231,14 @@ class _HomeScreenState extends State<HomeScreen> {
 }
 
 //
-// ✅ Custom Dashboard Button Widget
+// ✅ Dashboard Button Widget (Supports Disabled State)
 //
 class DashboardButton extends StatelessWidget {
   final IconData icon;
   final String title;
   final String subtitle;
   final VoidCallback onTap;
+  final bool enabled;
 
   const DashboardButton({
     super.key,
@@ -204,6 +246,7 @@ class DashboardButton extends StatelessWidget {
     required this.title,
     required this.subtitle,
     required this.onTap,
+    this.enabled = true,
   });
 
   @override
@@ -218,7 +261,7 @@ class DashboardButton extends StatelessWidget {
           ),
           padding: const EdgeInsets.symmetric(horizontal: 20),
         ),
-        onPressed: onTap,
+        onPressed: enabled ? onTap : null,
         child: Row(
           children: [
             Icon(icon, size: 32),
@@ -230,17 +273,28 @@ class DashboardButton extends StatelessWidget {
                 children: [
                   Text(
                     title,
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
+                      color: enabled ? null : Colors.grey,
                     ),
                   ),
                   const SizedBox(height: 4),
-                  Text(subtitle, style: const TextStyle(fontSize: 14)),
+                  Text(
+                    subtitle,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: enabled ? null : Colors.grey,
+                    ),
+                  ),
                 ],
               ),
             ),
-            const Icon(Icons.arrow_forward_ios, size: 18),
+            Icon(
+              Icons.arrow_forward_ios,
+              size: 18,
+              color: enabled ? null : Colors.grey,
+            ),
           ],
         ),
       ),

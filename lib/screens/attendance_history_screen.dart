@@ -58,9 +58,19 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
               itemBuilder: (context, index) {
                 final record = records[index];
 
-                final formattedTime = DateFormat(
+                // ✅ Format Check In Time
+                final checkInTime = DateFormat(
                   "dd MMM yyyy, hh:mm a",
-                ).format(DateTime.parse(record["checked_in_at"]));
+                ).format(DateTime.parse(record["created_at"]));
+
+                // ✅ Format Check Out Time (if exists)
+                String checkOutTime = "Not yet";
+
+                if (record["checked_out_at"] != null) {
+                  checkOutTime = DateFormat(
+                    "dd MMM yyyy, hh:mm a",
+                  ).format(DateTime.parse(record["checked_out_at"]));
+                }
 
                 return Card(
                   margin: const EdgeInsets.symmetric(
@@ -70,10 +80,42 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16),
                   ),
-                  child: ListTile(
-                    leading: const Icon(Icons.check_circle),
-                    title: const Text("Attendance Marked"),
-                    subtitle: Text(formattedTime),
+                  child: Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        const Text(
+                          "Attendance Record",
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+
+                        const SizedBox(height: 8),
+
+                        // ✅ Check In Display
+                        Row(
+                          children: [
+                            const Icon(Icons.login, size: 20),
+                            const SizedBox(width: 8),
+                            Text("Check In: $checkInTime"),
+                          ],
+                        ),
+
+                        const SizedBox(height: 6),
+
+                        // ✅ Check Out Display
+                        Row(
+                          children: [
+                            const Icon(Icons.logout, size: 20),
+                            const SizedBox(width: 8),
+                            Text("Check Out: $checkOutTime"),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
                 );
               },

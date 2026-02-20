@@ -1,54 +1,76 @@
-import 'dart:io';
 import 'dart:convert';
-// import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
+import 'dart:io';
 
+import 'package:http/http.dart' as http;
 import 'auth_service.dart';
 
 class ApiService {
-  static const String baseUrl =
-      "http://192.168.0.108/facetrack_backend/public/api";
+  // static const String baseUrl =
+  //     "http://192.168.0.108/facetrack_backend/public/api";
+  static const String baseUrl = "http://192.168.0.108:8000/api";
 
-  // ✅ Mark Attendance API (Token Protected)
-  static Future<void> markAttendanceWithImage(File imageFile) async {
+  // ✅ Upload Attendance (Check-in / Check-out)
+  static Future<Map<String, dynamic>> markAttendanceWithImage(File file) async {
     final token = await AuthService.getToken();
 
-    final url = Uri.parse("$baseUrl/attendance");
-
-    var request = http.MultipartRequest("POST", url);
+    final request = http.MultipartRequest(
+      "POST",
+      Uri.parse("$baseUrl/attendance"),
+    );
 
     request.headers["Authorization"] = "Bearer $token";
     request.headers["Accept"] = "application/json";
 
-    request.files.add(
-      await http.MultipartFile.fromPath("image", imageFile.path),
-    );
+    request.files.add(await http.MultipartFile.fromPath("image", file.path));
 
-    final response = await request.send();
+    final streamedResponse = await request.send();
 
-    if (response.statusCode == 200) {
-      print("✅ Attendance + Image Uploaded Successfully");
+    final responseBody = await streamedResponse.stream.bytesToString();
+
+    print("UPLOAD STATUS: ${streamedResponse.statusCode}");
+    print("UPLOAD BODY: $responseBody");
+
+    if (streamedResponse.statusCode == 200) {
+      return jsonDecode(responseBody);
     } else {
-      throw Exception("Upload failed: ${response.statusCode}");
+      throw Exception("Upload failed: $responseBody");
     }
   }
 
-  // ✅ Fetch Attendance History API (Token Protected)
+  // ✅ Fetch Attendance History
   static Future<List<dynamic>> getAttendanceHistory() async {
     final token = await AuthService.getToken();
 
-    // Laravel will return history for logged-in user
-    final url = Uri.parse("$baseUrl/attendance");
-
     final response = await http.get(
-      url,
+      Uri.parse("$baseUrl/attendance/history"),
       headers: {"Authorization": "Bearer $token", "Accept": "application/json"},
     );
+
+    print("HISTORY STATUS: ${response.statusCode}");
+    print("HISTORY BODY: ${response.body}");
+    print("TOKEN USED: $token");
 
     if (response.statusCode == 200) {
       return jsonDecode(response.body);
     } else {
       throw Exception("Failed to load history: ${response.body}");
+    }
+  }
+
+  // ✅ Get Today's Attendance Status
+  static Future<String> getTodayAttendanceStatus() async {
+    final token = await AuthService.getToken();
+
+    final response = await http.get(
+      Uri.parse("$baseUrl/attendance/status"),
+      headers: {"Authorization": "Bearer $token", "Accept": "application/json"},
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return data["status"];
+    } else {
+      throw Exception("Failed to load status");
     }
   }
 }
