@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import '../services/profile_service.dart';
+import '../config/app_config.dart';
 
 class AccountScreen extends StatefulWidget {
   final bool showUploadMessage;
@@ -52,7 +53,7 @@ class _AccountScreenState extends State<AccountScreen> {
         emailController.text = user["email"];
 
         profilePhotoUrl = user["profile_photo"] != null
-            ? "http://192.168.0.108/facetrack_backend/public/storage/${user["profile_photo"]}"
+            ? AppConfig.storageUrl(user["profile_photo"])
             : null;
 
         loading = false;

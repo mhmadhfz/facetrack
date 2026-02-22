@@ -91,7 +91,7 @@ class _FaceScanScreenState extends State<FaceScanScreen>
 
       if (faces.isEmpty) {
         setState(() {
-          resultText = "❌ No face detected. Try again.";
+          resultText = "No face detected. Try again.";
           isProcessing = false;
         });
         return;
@@ -102,7 +102,7 @@ class _FaceScanScreenState extends State<FaceScanScreen>
       });
 
       // ✅ Upload Attendance (Laravel returns check_in/check_out)
-      final data = await ApiService.markAttendanceWithImage(File(file.path));
+      final data = await ApiService.markAttendance();
       final type = data["type"];
 
       final now = DateTime.now();
@@ -123,11 +123,11 @@ class _FaceScanScreenState extends State<FaceScanScreen>
       if (!mounted) return;
 
       setState(() {
-        resultText = "❌ Verification failed.\nTry again.";
+        resultText = " Verification failed.\nTry again.";
         isProcessing = false;
       });
 
-      debugPrint("❌ FULL ERROR: $e");
+      debugPrint("FULL ERROR: $e");
     }
   }
 

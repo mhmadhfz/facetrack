@@ -3,11 +3,10 @@ import 'dart:io';
 
 import 'package:http/http.dart' as http;
 import 'auth_service.dart';
+import '../config/app_config.dart';
 
 class ApiService {
-  // static const String baseUrl =
-  //     "http://192.168.0.108/facetrack_backend/public/api";
-  static const String baseUrl = "http://192.168.0.108:8000/api";
+  static const String baseUrl = AppConfig.baseUrl;
 
   // ✅ Upload Attendance (Check-in / Check-out)
   static Future<Map<String, dynamic>> markAttendanceWithImage(File file) async {
@@ -71,6 +70,22 @@ class ApiService {
       return data["status"];
     } else {
       throw Exception("Failed to load status");
+    }
+  }
+
+  // ✅ Simple attendance without image
+  static Future<Map<String, dynamic>> markAttendance() async {
+    final token = await AuthService.getToken();
+
+    final response = await http.post(
+      Uri.parse("$baseUrl/attendance"),
+      headers: {"Authorization": "Bearer $token", "Accept": "application/json"},
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception("Attendance failed: ${response.body}");
     }
   }
 }

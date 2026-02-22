@@ -2,10 +2,10 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'auth_service.dart';
 import 'dart:io';
+import '../config/app_config.dart';
 
 class ProfileService {
-  static const String baseUrl =
-      "http://192.168.0.108/facetrack_backend/public/api";
+  static const String baseUrl = AppConfig.baseUrl;
 
   // ✅ Get Profile
   static Future<Map<String, dynamic>> fetchProfile() async {

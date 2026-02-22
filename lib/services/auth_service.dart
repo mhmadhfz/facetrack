@@ -2,10 +2,10 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
+import '../config/app_config.dart';
 
 class AuthService {
-  static const String baseUrl =
-      "http://192.168.0.108/facetrack_backend/public/api";
+  static const String baseUrl = AppConfig.baseUrl;
   // ⚠️ Replace with your PC IP
 
   // ✅ Login Function

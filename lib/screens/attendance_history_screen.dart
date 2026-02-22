@@ -57,11 +57,12 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
               itemCount: records.length,
               itemBuilder: (context, index) {
                 final record = records[index];
+                final now = DateTime.now();
 
                 // ✅ Format Check In Time
                 final checkInTime = DateFormat(
                   "dd MMM yyyy, hh:mm a",
-                ).format(DateTime.parse(record["created_at"]));
+                ).format(DateTime.parse(record["created_at"]).toLocal());
 
                 // ✅ Format Check Out Time (if exists)
                 String checkOutTime = "Not yet";
