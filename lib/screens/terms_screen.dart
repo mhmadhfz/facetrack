@@ -17,14 +17,14 @@ class TermsScreen extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: const [
               Text(
-                "FaceTrack Terms & Conditions",
+                "Attendify Terms & Conditions",
                 style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
               ),
               SizedBox(height: 20),
 
               Text(
                 "1. Purpose\n"
-                "FaceTrack is a smart attendance system created for educational "
+                "Attendify is a smart attendance system created for educational "
                 "and portfolio purposes.\n",
                 style: TextStyle(fontSize: 16),
               ),
@@ -59,7 +59,7 @@ class TermsScreen extends StatelessWidget {
               SizedBox(height: 25),
 
               Text(
-                "Thank you for using FaceTrack!",
+                "Thank you for using Attendify!",
                 style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
               ),
             ],

@@ -99,7 +99,7 @@ class _SplashScreenState extends State<SplashScreen>
 
                 // ✅ App Name
                 const Text(
-                  "FaceTrack",
+                  "Attendify",
                   style: TextStyle(
                     fontSize: 30,
                     fontWeight: FontWeight.bold,

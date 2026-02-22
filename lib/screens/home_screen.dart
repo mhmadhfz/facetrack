@@ -148,7 +148,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     SizedBox(width: 20),
                     Expanded(
                       child: Text(
-                        "Welcome to FaceTrack 👋\nYour smart attendance system.",
+                        "Welcome to Attendify 👋\nYour smart attendance system.",
                         style: TextStyle(
                           fontSize: 18,
                           fontWeight: FontWeight.w600,

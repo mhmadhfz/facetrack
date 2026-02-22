@@ -57,7 +57,6 @@ class _AttendanceHistoryScreenState extends State<AttendanceHistoryScreen> {
               itemCount: records.length,
               itemBuilder: (context, index) {
                 final record = records[index];
-                final now = DateTime.now();
 
                 // ✅ Format Check In Time
                 final checkInTime = DateFormat(
